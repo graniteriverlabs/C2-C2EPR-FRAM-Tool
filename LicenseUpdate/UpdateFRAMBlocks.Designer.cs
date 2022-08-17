@@ -60,7 +60,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(127, 81);
+            this.label1.Location = new System.Drawing.Point(135, 81);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 16);
             this.label1.TabIndex = 2;
@@ -69,9 +69,9 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(32, 27);
+            this.label2.Location = new System.Drawing.Point(33, 27);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(224, 20);
+            this.label2.Size = new System.Drawing.Size(179, 16);
             this.label2.TabIndex = 3;
             this.label2.Text = "SN of GRL-USB-PD-C2 EPR:";
             this.label2.Click += new System.EventHandler(this.label2_Click);
@@ -79,7 +79,7 @@
             // lblSerialNo
             // 
             this.lblSerialNo.AutoSize = true;
-            this.lblSerialNo.Location = new System.Drawing.Point(245, 81);
+            this.lblSerialNo.Location = new System.Drawing.Point(237, 81);
             this.lblSerialNo.Name = "lblSerialNo";
             this.lblSerialNo.Size = new System.Drawing.Size(102, 16);
             this.lblSerialNo.TabIndex = 4;
