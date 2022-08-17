@@ -1,0 +1,10 @@
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\x86\Debug\UpdateFRAMRevision.exe.config
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\x86\Debug\UpdateFRAMRevision.exe
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\x86\Debug\UpdateFRAMRevision.pdb
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.csprojAssemblyReference.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\QCLic.Form1.resources
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.Properties.Resources.resources
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.csproj.GenerateResource.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.csproj.CoreCompileInputs.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.exe
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\x86\Debug\UpdateFRAMRevision.pdb

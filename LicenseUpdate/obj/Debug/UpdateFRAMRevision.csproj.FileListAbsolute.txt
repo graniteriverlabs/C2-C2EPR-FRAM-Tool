@@ -1,0 +1,10 @@
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\QCLic.Form1.resources
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\UpdateFRAMRevision.csproj.GenerateResource.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\UpdateFRAMRevision.csproj.CoreCompileInputs.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\Debug\licenseUpdate.exe.config
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\Debug\licenseUpdate.exe
+E:\Apps\Calibration\UpdateFramRevision\QCLic\bin\Debug\licenseUpdate.pdb
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\UpdateFRAMRevision.csprojAssemblyReference.cache
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\licenseUpdate.Properties.Resources.resources
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\licenseUpdate.exe
+E:\Apps\Calibration\UpdateFramRevision\QCLic\obj\Debug\licenseUpdate.pdb

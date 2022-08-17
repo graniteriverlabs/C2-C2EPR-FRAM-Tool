@@ -1,0 +1,18 @@
+E:\Utility Source codes\QCLic\QCLic\bin\x86\Debug\QCLic.exe.config
+E:\Utility Source codes\QCLic\QCLic\bin\x86\Debug\QCLic.exe
+E:\Utility Source codes\QCLic\QCLic\bin\x86\Debug\QCLic.pdb
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.Form1.resources
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.Properties.Resources.resources
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.csproj.GenerateResource.cache
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.csproj.CoreCompileInputs.cache
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.exe
+E:\Utility Source codes\QCLic\QCLic\obj\x86\Debug\QCLic.pdb
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\QCLic.Form1.resources
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\QCLic.csproj.GenerateResource.cache
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\QCLic.csproj.CoreCompileInputs.cache
+E:\Apps\Licence code\QCLic\QCLic\bin\x86\Debug\GRLUSBPDLic.exe.config
+E:\Apps\Licence code\QCLic\QCLic\bin\x86\Debug\GRLUSBPDLic.exe
+E:\Apps\Licence code\QCLic\QCLic\bin\x86\Debug\GRLUSBPDLic.pdb
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\GRLUSBPDLic.Properties.Resources.resources
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\GRLUSBPDLic.exe
+E:\Apps\Licence code\QCLic\QCLic\obj\x86\Debug\GRLUSBPDLic.pdb
