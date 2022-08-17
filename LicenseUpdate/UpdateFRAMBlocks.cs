@@ -17,7 +17,7 @@ namespace UpdateFRAMBlocks
         int verifyBoardNumer = 32;  // Enter the board number 
         int verifySomBoardNumer = 28; // Enter the som board number  
         //Yog :: update the respective board serial numbers         
-        string ControllerNumber = "GRL-C2-EPR-2021018"; //Enter the C2 EPR | C2 number to display and compare before update
+        string ControllerNumber = "240.257.240.168.310."; //Enter the C2 EPR | C2 number to display and compare before update
 
         DecodeFRAM mDecodeFRAM = new DecodeFRAM();
         string strboardno = "";
@@ -28,7 +28,7 @@ namespace UpdateFRAMBlocks
             m_initlink = new GrlEthernetLink_C2();
             m_initlink.InitilizePort();
             GetControllerType();
-            strboardno = GetControllerSerialNo();            
+            strboardno = GetControllerSerialNo();
             strversionno.Text = strboardno;
             if (isC2EPR)
                 label2.Text = "SN of GRL-USB-PD-C2 EPR :";
@@ -42,7 +42,7 @@ namespace UpdateFRAMBlocks
             {
                 //update for which controller unit - to display in UI
                 lblSerialNo.Text = "0" + verifyBoardNumer.ToString() + ".0" + verifySomBoardNumer.ToString() + ".XXX.XXX.XXX";
-                if (isC2EPR)
+                if (true)
                 {
                     lblSerialNo.Text = ControllerNumber;
                 }
