@@ -12,12 +12,13 @@ namespace UpdateFRAMBlocks
         int TWOBYTE = 2;
 
         bool isC2EPR = false;
+        int verifyBoardNumer = 32;  // Enter the board number // Discontinued
+        int verifySomBoardNumer = 28; // Enter the som board number  // Discontinued
 
-        //for C2 
-        int verifyBoardNumer = 32;  // Enter the board number 
-        int verifySomBoardNumer = 28; // Enter the som board number  
-        //Yog :: update the respective board serial numbers         
-        string ControllerNumber = "240.257.240.168.310."; //Enter the C2 EPR | C2 number to display and compare before update
+        //Yog 
+        //For C2 and C2 EPR update the respective board serial numbers         
+        //Enter the C2 EPR | C2 number to display and compare before update
+        string ControllerNumber = "240.257.240.168.310."; 
 
         DecodeFRAM mDecodeFRAM = new DecodeFRAM();
         string strboardno = "";
