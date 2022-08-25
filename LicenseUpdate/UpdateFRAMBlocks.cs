@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -18,7 +20,10 @@ namespace UpdateFRAMBlocks
         //Yog 
         //For C2 and C2 EPR update the respective board serial numbers         
         //Enter the C2 EPR | C2 number to display and compare before update
-        string ControllerNumber = "240.257.240.168.310."; 
+        string ControllerNumber = "240.257.240.168.310.";
+
+        //file location 
+        string folderLocation = @"C:\GRL\GRL-Controller-CalibrationData\Reports";
 
         DecodeFRAM mDecodeFRAM = new DecodeFRAM();
         string strboardno = "";
@@ -112,15 +117,62 @@ namespace UpdateFRAMBlocks
 
                 bool retval = mDecodeFRAM.DecodeFramXL(FRAMData.m_Framdata, isC2EPR);
                 if (retval)
+                {
                     MessageBox.Show("Updated Successfully");
+                    MessageBox.Show("Power cycle the controller");
+                }
+
                 else
                     MessageBox.Show("UnSuccessfully");
+
+                //write the data into the file 
+                FileReadWrite();
             }
             catch (Exception ex)
             {
 
             }
         }
+
+        private void FileReadWrite()
+        {
+            try
+            {
+                if (!Directory.Exists(folderLocation))
+                {
+                    Directory.CreateDirectory(folderLocation);
+                }
+                string date = DateTime.Now.ToString().Replace("/", "_").Replace(":", "_").Replace(" ", "_");
+                string fileName = $"LoggerData_{date}.bin";
+                string actualPath = folderLocation + $"\\{fileName}";
+
+                using (var stream = File.Open(actualPath, FileMode.Create))
+                {
+                    using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
+                    {
+                        writer.Write(mDecodeFRAM.strData);
+                        stream.Close();
+                    }
+                }
+
+                if (false)
+                {
+                    //read the data ::
+                    string readStr;
+                    using (var stream = File.Open(actualPath, FileMode.Open))
+                    {
+                        using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
+                        {
+                            readStr = reader.ReadString();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
         public bool Reset_Controller()
         {
             bool retValue = false;

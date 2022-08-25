@@ -4,6 +4,9 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.IO;
+using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace UpdateFRAMBlocks
 {
@@ -138,12 +141,13 @@ namespace UpdateFRAMBlocks
         private List<FRAMBlocks> FramBlockDataLst = null;
         private List<FRAM_Data> FramdataLst = null;
         private GrlEthernetLink_C2 m_grlEthernetLink_C2 = null;
-
+        public string strData;
         public DecodeFRAM()
         {
             FramdataLst = new List<FRAM_Data>();
             FramBlockDataLst = new List<FRAMBlocks>();
             m_grlEthernetLink_C2 = new GrlEthernetLink_C2();
+            strData = "";
         }
 
         private uint getOffset(int frmablock)
@@ -249,6 +253,7 @@ namespace UpdateFRAMBlocks
         private int DecodeFRAMInput(string strFileName, bool isC2EPR)
         {
             int tBytes = 0;
+            List<byte> bytes = new List<byte>();
             try
             {
                 string[] m_FRAMValues = strFileName.Split('|');
@@ -307,6 +312,10 @@ namespace UpdateFRAMBlocks
 
                     }
                     itempdata = new FRAM_Data(itempID, utempoffset, nobytes, strval, databuf);
+
+                    for (int i = 0; i < databuf.Length; i++)
+                        bytes.Add(databuf[i]);
+
                     int iblkbytes = 0;
                     itempdata.frBlock = GetBlockNo(blockNo);
                     itempdata.uiBlockNo_of_Bytes = iblkbytes;
@@ -362,6 +371,14 @@ namespace UpdateFRAMBlocks
                         }
                     }
                 }
+
+                //debug 
+
+                if (true)
+                {
+                    byte[] data = bytes.ToArray();
+                    var strData = ConvertBytesToString(bytes);
+                }
             }
             catch (Exception ex)
             {
@@ -369,80 +386,271 @@ namespace UpdateFRAMBlocks
             }
             return tBytes;
         }
-        private bool WriteValuesToFRAM(List<byte> FRAMInput, int inofbytes, uint uioffset, bool isC2EPR)
+
+        public async Task<string> ConvertBytesToString(List<byte> bufData, int printLength = -1)
         {
-            bool retVal = false;
+            string strFinalData = string.Empty;
             try
             {
-                //lblstatusBar.Text = "Writing File to FRAM........";
-                int maxLength = 250;
-                byte[] databuffer = new byte[FRAMInput.Count + 6];
-                byte[] tempbuf = new byte[maxLength];
-                databuffer[0] = 0x6B;
-                databuffer[1] = 0x01;
-                // for C2 
-                databuffer[2] = 0x50;
-                // for c2EPR
-                if (isC2EPR)
+                if (printLength <= 0)
+                    printLength = bufData.Count;
+                if (printLength > bufData.Count)
+                    printLength = bufData.Count;
+                List<byte> tempBuf = new List<byte>();
+                if (printLength < bufData.Count)
                 {
-                    databuffer[2] = 0x56;
-                }
-                databuffer[3] = (byte)(inofbytes + 2);
-                databuffer[4] = (byte)(uioffset >> 8);
-                databuffer[5] = (byte)(uioffset);
-
-                for (int i = 0; i < (FRAMInput.Count); i++)
-                {
-                    databuffer[i + 6] = (FRAMInput[i]);
-                }
-                if (databuffer.Length >= maxLength)
-                {
-
-                    List<byte> myBytes = new List<Byte>(databuffer);
-                    List<byte> tempBytes = new List<byte>();
-                    while (myBytes.Count > 0)
-                    {
-                        if (myBytes.Count > maxLength)
-                        {
-                            tempBytes = myBytes.GetRange(0, maxLength);
-                            retVal = m_grlEthernetLink_C2.Write(tempBytes.ToArray());
-                            myBytes.RemoveRange(0, maxLength);
-                        }
-                        else
-                        {
-                            retVal = m_grlEthernetLink_C2.Write(myBytes.ToArray());
-                            myBytes.RemoveRange(0, myBytes.Count);
-                        }
-                    }
-
-                    //for (int i = 0; i < databuffer.Length; i++)
-                    //{
-                    //    if ((i % maxLength) == 0)
-                    //    {
-                    //        retVal = m_grlEthernetLink_C2.Write(tempbuf);
-                    //        tempbuf = new byte[maxLength];
-                    //        tempbuf[i] = databuffer[i];
-                    //    }
-                    //    else
-                    //    {
-                    //        tempbuf[i] = databuffer[i];
-                    //    }
-                    //}
+                    tempBuf = new List<byte>(bufData.GetRange(0, printLength));
                 }
                 else
                 {
-                    retVal = m_grlEthernetLink_C2.Write(databuffer);
+                    tempBuf.AddRange(bufData);
                 }
-                Thread.Sleep(100);
+                if (tempBuf.Count > 10000)
+                {
+                    int singleBufCnt = tempBuf.Count / 4;
 
+                    List<byte> bufOne = tempBuf.GetRange(0, singleBufCnt);
+                    tempBuf.RemoveRange(0, singleBufCnt);
+                    var task1 = Task.Run(() =>
+                    {
+                        return ByteToStringInHexFormat(bufOne);
+                    });
+
+                    List<byte> bufTwo = tempBuf.GetRange(0, singleBufCnt);
+                    tempBuf.RemoveRange(0, singleBufCnt);
+                    var task2 = Task.Run(() =>
+                    {
+                        return ByteToStringInHexFormat(bufTwo);
+                    });
+
+                    List<byte> bufThree = tempBuf.GetRange(0, singleBufCnt);
+                    tempBuf.RemoveRange(0, singleBufCnt);
+                    var task3 = Task.Run(() =>
+                    {
+                        return ByteToStringInHexFormat(bufThree);
+                    });
+
+                    List<byte> bufFour = tempBuf.GetRange(0, tempBuf.Count);
+                    tempBuf.Clear();
+                    var task4 = Task.Run(() =>
+                    {
+                        return ByteToStringInHexFormat(bufFour);
+                    });
+
+                    var task1Awaiter = task1.GetAwaiter();
+                    string strDataOne = task1Awaiter.GetResult();
+                    var task2Awaiter = task2.GetAwaiter();
+                    string strDataTwo = task2Awaiter.GetResult();
+                    var task3Awaiter = task3.GetAwaiter();
+                    string strDataThree = task3Awaiter.GetResult();
+                    var task4Awaiter = task4.GetAwaiter();
+                    string strDataFour = task4Awaiter.GetResult();
+                    strFinalData = strDataOne + strDataTwo + strDataThree + strDataFour;
+                }
+                else
+                {
+                    strFinalData = await ByteToStringInHexFormat(tempBuf);
+                }
             }
             catch (Exception ex)
             {
-                retVal = false;
-                MessageBox.Show("FRAM Write Failed : Please restart the board and Upload again");
+                MessageBox.Show("Write Error!");
+            }
+            return strFinalData;
+        }
+
+        private async Task<string> ByteToStringInHexFormat(List<byte> data)
+        {
+            string strData = string.Empty;
+            try
+            {
+                for (int p = 0; p < data.Count; p++)
+                {
+                    strData += data[p].ToString("X").ToUpper().PadLeft(2, '0') + ",";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Write Error!!");
+            }
+            return strData;
+        }
+
+        private bool BaseBoardWriteAPI(List<byte> data, uint startAddress, uint length, bool isC2EPR)
+        {
+            byte offsetLSB = (byte)(startAddress & 0xFF);
+            byte offsetMSB = (byte)((startAddress >> 8) & 0xFF);
+            bool retValue;
+            // for C2 
+            byte slaveAddress = 0x50;
+            // for c2EPR
+            if (isC2EPR)
+            {
+                slaveAddress = 0x50;
+            }
+
+            try
+            {
+                var byteData = ConvertBytesToString(data);
+                strData = strData + byteData?.Result.ToString();
+
+
+                List<byte> dataBuffer = new List<byte>
+                { 
+                    // Firmware command 
+                    0x6B, 
+
+                    // Firmware command Read/write
+                    0x01, 
+
+                    // Slave address 
+                    slaveAddress,
+
+                    (byte)(length + 2),
+
+                    // Offset address MSB
+                    offsetMSB,
+
+                    //Offset address LSB
+                    offsetLSB,
+
+                };
+                if (data != null)
+                {
+                    if (data.Count > 0)
+                    {
+                        dataBuffer.AddRange(data);
+                    }
+                }
+
+                retValue = m_grlEthernetLink_C2.Write(dataBuffer.ToArray());
+            }
+            catch (Exception ex)
+            {
+                retValue = false;
+                MessageBox.Show("Write Error!!!");
+            }
+            return retValue;
+        }
+
+        private bool WriteValuesToFRAM_New(List<byte> data, int inofbytes, uint uioffset, bool isC2EPR)
+        {
+            bool retVal = true;
+            try
+            {
+                uint maxLength = 200;
+                uint offSet = 0;
+
+                if (data.Count > maxLength)
+                {
+                    do
+                    {
+                        List<byte> tempByte = new List<byte>();
+                        for (int i = 0; i < maxLength; i++)
+                        {
+                            tempByte.Add(data[i]);
+                        }
+
+                        retVal = BaseBoardWriteAPI(tempByte, offSet, (uint)tempByte.Count, isC2EPR);
+                        offSet += (uint)tempByte.Count;
+                        data.RemoveRange(0, (int)maxLength);
+                        if (!retVal)
+                        {
+                            break;
+                        }
+                    }
+                    while (data.Count > maxLength);
+                }
+
+                if (data.Count > 0 && retVal)
+                {
+                    retVal = BaseBoardWriteAPI(data, offSet, (uint)data.Count, isC2EPR);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Write Error.!!!");
             }
             return retVal;
         }
+
+        //private bool WriteValuesToFRAM(List<byte> FRAMInput, int inofbytes, uint uioffset, bool isC2EPR)
+        //{
+        //    bool retVal = false;
+        //    List<byte> data = new List<byte>();
+        //    try
+        //    {
+        //        //lblstatusBar.Text = "Writing File to FRAM........";
+        //        int maxLength = 250;
+        //        byte[] databuffer = new byte[FRAMInput.Count + 6];
+        //        byte[] tempbuf = new byte[maxLength];
+        //        databuffer[0] = 0x6B;
+        //        databuffer[1] = 0x01;
+        //        // for C2 
+        //        databuffer[2] = 0x50;
+        //        // for c2EPR
+        //        if (isC2EPR)
+        //        {
+        //            databuffer[2] = 0x56;
+        //        }
+        //        databuffer[3] = (byte)(inofbytes + 2);
+        //        databuffer[4] = (byte)(uioffset >> 8);
+        //        databuffer[5] = (byte)(uioffset);
+
+        //        for (int i = 0; i < (FRAMInput.Count); i++)
+        //        {
+        //            databuffer[i + 6] = (FRAMInput[i]);
+        //        }
+        //        if (databuffer.Length >= maxLength)
+        //        {
+        //            List<byte> myBytes = new List<Byte>(databuffer);
+        //            List<byte> tempBytes = new List<byte>();
+        //            while (myBytes.Count > 0)
+        //            {
+        //                //IF count is greater than 250 
+        //                if (myBytes.Count > maxLength)
+        //                {
+        //                    tempBytes = myBytes.GetRange(0, maxLength);
+        //                    foreach (byte b in tempBytes)
+        //                    {
+        //                        data.Add(b);
+        //                    }
+        //                    retVal = m_grlEthernetLink_C2.Write(tempBytes.ToArray());
+        //                    myBytes.RemoveRange(0, maxLength);
+        //                }
+        //                else
+        //                {
+        //                    //IF count is lesser than 250 - write and remove from the list -
+        //                    //if count is 0 [due to removing the elements - while will break]
+        //                    foreach (byte b in myBytes)
+        //                    {
+        //                        data.Add(b);
+        //                    }
+        //                    retVal = m_grlEthernetLink_C2.Write(myBytes.ToArray());
+        //                    myBytes.RemoveRange(0, myBytes.Count);
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            foreach (byte b in databuffer)
+        //            {
+        //                data.Add(b);
+        //            }
+        //            retVal = m_grlEthernetLink_C2.Write(databuffer);
+        //        }
+        //        Thread.Sleep(100);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        retVal = false;
+        //        MessageBox.Show("FRAM Write Failed : Please restart the board and Upload again");
+        //    }
+
+        //    strData = ConvertBytesToString(data).ToString();
+        //    return retVal;
+        //}
         public bool DecodeFramXL(string fileName, bool isC2EPR)
         {
             bool retVal = false;
@@ -455,7 +663,8 @@ namespace UpdateFRAMBlocks
                 {
                     bytetemp.AddRange(FramBlockDataLst[i].framdata[q].byteVal);
                 }
-                retVal = WriteValuesToFRAM(bytetemp, FramBlockDataLst[i].iNofobytes, FramBlockDataLst[i].uiOffsetAdd, isC2EPR);
+                retVal = WriteValuesToFRAM_New(bytetemp, FramBlockDataLst[i].iNofobytes, FramBlockDataLst[i].uiOffsetAdd, isC2EPR);
+                //retVal = WriteValuesToFRAM(bytetemp, FramBlockDataLst[i].iNofobytes, FramBlockDataLst[i].uiOffsetAdd, isC2EPR);
             }
             if (retVal)
                 //m_Notify.UpdateResult("Number of bytes uploaded : " + tBytes.ToString());
