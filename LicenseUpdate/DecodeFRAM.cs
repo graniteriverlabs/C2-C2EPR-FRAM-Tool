@@ -486,7 +486,11 @@ namespace UpdateFRAMBlocks
             // for c2EPR
             if (isC2EPR)
             {
-                slaveAddress = 0x50;
+                slaveAddress = 0x56;
+            }
+            else
+            {
+
             }
 
             try
@@ -504,7 +508,7 @@ namespace UpdateFRAMBlocks
                     0x01, 
 
                     // Slave address 
-                    slaveAddress,
+                    (byte)slaveAddress,
 
                     (byte)(length + 2),
 
@@ -533,18 +537,24 @@ namespace UpdateFRAMBlocks
             return retValue;
         }
 
-        private bool WriteValuesToFRAM_New(List<byte> data, int inofbytes, uint uioffset, bool isC2EPR)
+        private bool WriteValuesToFRAM_New(List<byte> data, bool isC2EPR)
         {
             bool retVal = true;
+            uint _offSet = 0;
             try
             {
                 uint maxLength = 200;
-                uint offSet = 0;
+                uint offSet = _offSet;
 
                 if (data.Count > maxLength)
                 {
                     do
                     {
+                        if (!retVal)
+                        {
+                            retVal = false;
+                            break;
+                        }
                         List<byte> tempByte = new List<byte>();
                         for (int i = 0; i < maxLength; i++)
                         {
@@ -552,6 +562,8 @@ namespace UpdateFRAMBlocks
                         }
 
                         retVal = BaseBoardWriteAPI(tempByte, offSet, (uint)tempByte.Count, isC2EPR);
+
+                        Thread.Sleep(500);
                         offSet += (uint)tempByte.Count;
                         data.RemoveRange(0, (int)maxLength);
                         if (!retVal)
@@ -656,18 +668,20 @@ namespace UpdateFRAMBlocks
             bool retVal = false;
             int tBytes = DecodeFRAMInput(fileName, isC2EPR);
 
+            List<byte> byteList = new List<byte>();
+
             for (int i = 0; i < FramBlockDataLst.Count; i++)
             {
                 List<byte> bytetemp = new List<byte>();
                 for (int q = 0; q < FramBlockDataLst[i].framdata.Count; q++)
                 {
                     bytetemp.AddRange(FramBlockDataLst[i].framdata[q].byteVal);
+                    byteList.AddRange(FramBlockDataLst[i].framdata[q].byteVal);
                 }
-                retVal = WriteValuesToFRAM_New(bytetemp, FramBlockDataLst[i].iNofobytes, FramBlockDataLst[i].uiOffsetAdd, isC2EPR);
-                //retVal = WriteValuesToFRAM(bytetemp, FramBlockDataLst[i].iNofobytes, FramBlockDataLst[i].uiOffsetAdd, isC2EPR);
             }
+
+            retVal = WriteValuesToFRAM_New(byteList, isC2EPR);
             if (retVal)
-                //m_Notify.UpdateResult("Number of bytes uploaded : " + tBytes.ToString());
                 FramBlockDataLst.Clear();
             FramdataLst.Clear();
             return retVal;
