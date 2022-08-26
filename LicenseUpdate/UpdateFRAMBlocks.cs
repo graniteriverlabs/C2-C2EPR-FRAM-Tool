@@ -9,11 +9,10 @@ namespace UpdateFRAMBlocks
 {
     public partial class Form1 : Form
     {
-
         int ONEBYTE = 1;
         int TWOBYTE = 2;
 
-        bool isC2EPR = false;
+        bool isC2EPR = true;
         int verifyBoardNumer = 32;  // Enter the board number // Discontinued
         int verifySomBoardNumer = 28; // Enter the som board number  // Discontinued
 
@@ -102,7 +101,6 @@ namespace UpdateFRAMBlocks
         }
         private void btnLic_Click(object sender, EventArgs e)
         {
-
             try
             {
                 //Yog 
@@ -121,7 +119,6 @@ namespace UpdateFRAMBlocks
                     MessageBox.Show("Updated Successfully");
                     MessageBox.Show("Power cycle the controller");
                 }
-
                 else
                     MessageBox.Show("UnSuccessfully");
 
