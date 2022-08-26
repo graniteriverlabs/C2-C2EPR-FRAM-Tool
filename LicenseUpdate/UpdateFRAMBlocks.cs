@@ -145,7 +145,7 @@ namespace UpdateFRAMBlocks
             }
             else
             {
-                MessageBox.Show("Check the Controller connection and retry");
+                MessageBox.Show("Check the Controller connection and click ok");
                 Reconnection();
             }
         }
