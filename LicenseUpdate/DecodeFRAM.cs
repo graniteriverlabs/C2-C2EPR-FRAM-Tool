@@ -141,13 +141,15 @@ namespace UpdateFRAMBlocks
         private List<FRAMBlocks> FramBlockDataLst = null;
         private List<FRAM_Data> FramdataLst = null;
         private GrlEthernetLink_C2 m_grlEthernetLink_C2 = null;
-        public string strData;
+        public string strWriteData;
+        public string strReadData;
         public DecodeFRAM()
         {
             FramdataLst = new List<FRAM_Data>();
             FramBlockDataLst = new List<FRAMBlocks>();
             m_grlEthernetLink_C2 = new GrlEthernetLink_C2();
-            strData = "";
+            strWriteData = "";
+            strReadData = "";
         }
 
         private uint getOffset(int frmablock)
@@ -496,7 +498,7 @@ namespace UpdateFRAMBlocks
             try
             {
                 var byteData = ConvertBytesToString(data);
-                strData = strData + byteData?.Result.ToString();
+                strWriteData = strWriteData + byteData?.Result.ToString();
 
 
                 List<byte> dataBuffer = new List<byte>
@@ -535,6 +537,219 @@ namespace UpdateFRAMBlocks
                 MessageBox.Show("Write Error!!!");
             }
             return retValue;
+        }
+
+        private bool C2_FRAM_Baseboard_Read(uint startaddress, uint length, bool isC2EPR)
+
+        {
+            byte offsetLSB = (byte)(startaddress & 0xFF);
+            byte offsetMSB = (byte)((startaddress >> 8) & 0xFF);
+            bool retValue;
+            try
+            {
+
+                // for C2 
+                byte slaveAddress = 0x50;
+                // for c2EPR
+                if (isC2EPR)
+                {
+                    slaveAddress = 0x56;
+                }
+                else
+                {
+
+                }
+
+                List<byte> dataBuffer = new List<byte>
+                { 
+                    // Firmware command 
+                    0x6C, 
+
+                    // Firmware command Read/write
+                    0x01, 
+
+                    // Slave address 
+                    (byte)slaveAddress,
+                    //0x50,
+
+                    (byte)length,
+
+                    0x02,
+
+                      // Offset address MSB
+                    offsetMSB,
+
+                    //Offset address LSB
+                    offsetLSB,
+
+                };
+                retValue = m_grlEthernetLink_C2.Write(dataBuffer.ToArray());
+            }
+            catch (Exception ex)
+            {
+                retValue = false;
+                //HelperModule.Debug(MethodBase.GetCurrentMethod().Name, ex);
+            }
+            return retValue;
+        }
+
+        private bool FRAM_Baseboard_Read(ref byte[] data, string apiName)
+        {
+            data = new byte[] { 0xFC, 0x00, 0XE8 };
+            return m_grlEthernetLink_C2.Read(ref data, apiName);
+        }
+
+        public bool Baseboard_FRAM_Read(ref byte[] data, uint startAddress, uint length, bool isC2EPR)
+        {
+            bool retValue = C2_FRAM_Baseboard_Read(startAddress, length, isC2EPR);
+            if (retValue)
+            {
+                Thread.Sleep(500);
+                retValue = FRAM_Baseboard_Read(ref data, MethodBase.GetCurrentMethod().Name);
+            }
+            else
+            {
+                MessageBox.Show("FRAM baseboard command execution failed");
+            }
+            return retValue;
+        }
+
+        public List<byte> RawData = new List<byte>();
+        int endofFRAMIndication = 0;
+
+        public bool Read(uint startOffset, uint length, bool isC2EPR)
+        {
+            byte[] dataBuffer = new byte[1024];
+            bool retVal = true;
+            Baseboard_FRAM_Read(ref dataBuffer, startOffset, length, isC2EPR);
+
+            for (int i = 0; i < length; i++)
+            {
+                RawData.Add(dataBuffer[i]);
+                if (dataBuffer[i] == 59)
+                {
+                    endofFRAMIndication++;
+                    if (endofFRAMIndication == 4)
+                    {
+                        retVal = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    endofFRAMIndication = 0;
+                }
+            }
+            return retVal;
+        }
+
+        public int Get2ByteInt(int address)
+        {
+            int retVal = 0;
+            try
+            {
+                retVal = (RawData[address + 1] << 8) + RawData[address];
+            }
+            catch (Exception ex)
+            {
+                //HelperModule.Debug(MethodBase.GetCurrentMethod().Name, ex);
+            }
+
+            return retVal;
+        }
+
+        public List<byte> Read(bool isC2EPR)
+        {
+            try
+            {
+                uint readStartIndex = 00;
+                uint defaultLength = 200;
+
+                RawData = new List<byte>();
+                endofFRAMIndication = 0;
+
+                // Read the first four bytes to get the FRAM data length
+                Read(readStartIndex, 4, isC2EPR);
+
+                // Check the validity of the FRAM
+                int blockStart = Get2ByteInt(0);
+                if (blockStart != 0x0A0A)
+                {
+                    //MessageShow("FRAM Start data was not proper");
+                    return RawData;
+                }
+
+                uint totalDatalength = (uint)Get2ByteInt(2);
+
+                readStartIndex += 4;
+                uint readBytes = totalDatalength - readStartIndex;
+                bool retVal = false;
+
+                // This will read 200 bytes in one read command.
+                if (totalDatalength > defaultLength)
+                {
+                    do
+                    {
+                        retVal = Read(readStartIndex, defaultLength, isC2EPR);
+                        readStartIndex += defaultLength;
+                        readBytes -= defaultLength;
+                        //HelperModule.AddStatusUpdate($"Reading - {readStartIndex}");
+                    } while (retVal == true && readBytes > defaultLength);
+                }
+
+                // This will read if there is any remaining bytes to be read 
+                if (readBytes > 0)
+                {
+                    retVal = Read(readStartIndex, readBytes, isC2EPR);
+                }
+
+                // If the read buffer is filled then 
+                // This will check if the data read properly 
+                if (RawData.Count > 0)
+                {
+                    retVal = false;
+                    endofFRAMIndication = 0;
+                    if (totalDatalength == RawData.Count)
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (RawData[RawData.Count - 1 - i] == 59)
+                            {
+                                endofFRAMIndication++;
+
+                                // End of system details confirms by 4 semicolons 
+                                if (endofFRAMIndication == 4)
+                                {
+                                    retVal = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                endofFRAMIndication = 0;
+                            }
+                        }
+                    }
+
+                    if (!retVal)
+                    {
+                        //MessageBox.Show("System Details data length is improper " + RawData.Count);
+                    }
+                }
+
+                //debug 
+                if (true)
+                {
+                    var byteData = ConvertBytesToString(RawData);
+                    strReadData = byteData?.Result.ToString();
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return RawData;
         }
 
         private bool WriteValuesToFRAM_New(List<byte> data, bool isC2EPR)

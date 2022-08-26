@@ -112,12 +112,14 @@ namespace UpdateFRAMBlocks
                     return;
                 }
 
-
                 bool retval = mDecodeFRAM.DecodeFramXL(FRAMData.m_Framdata, isC2EPR);
                 if (retval)
                 {
                     MessageBox.Show("Updated Successfully");
-                    MessageBox.Show("Power cycle the controller");
+                    MessageBox.Show("Press the Power Cycle button in controller \n Click Ok once the controller is restarted");
+                    //MessageBox.Show("Power cycle the controller");
+
+                    Reconnection();
                 }
                 else
                     MessageBox.Show("UnSuccessfully");
@@ -128,6 +130,23 @@ namespace UpdateFRAMBlocks
             catch (Exception ex)
             {
 
+            }
+        }
+
+        private void Reconnection()
+        {
+            Thread.Sleep(2000);
+            m_initlink.InitilizePort();
+            GetControllerType();
+            string boardNum = GetControllerSerialNo();
+            if (boardNum != "")
+            {
+                mDecodeFRAM.Read(isC2EPR);
+            }
+            else
+            {
+                MessageBox.Show("Check the Controller connection and retry");
+                Reconnection();
             }
         }
 
@@ -147,20 +166,24 @@ namespace UpdateFRAMBlocks
                 {
                     using (var writer = new BinaryWriter(stream, Encoding.UTF8, false))
                     {
-                        writer.Write(mDecodeFRAM.strData);
+                        writer.Write("Write" + mDecodeFRAM.strWriteData);
+                        writer.Write("Read" + mDecodeFRAM.strReadData);
                         stream.Close();
                     }
                 }
 
-                if (false)
+                if (true)
                 {
                     //read the data ::
-                    string readStr;
+                    string readStr1;
+                    string readStr2;
                     using (var stream = File.Open(actualPath, FileMode.Open))
                     {
                         using (var reader = new BinaryReader(stream, Encoding.UTF8, false))
                         {
-                            readStr = reader.ReadString();
+                            readStr1 = reader.ReadString();
+                            readStr2 = reader.ReadString();
+
                         }
                     }
                 }
