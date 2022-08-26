@@ -183,7 +183,6 @@ namespace UpdateFRAMBlocks
                         {
                             readStr1 = reader.ReadString();
                             readStr2 = reader.ReadString();
-
                         }
                     }
                 }

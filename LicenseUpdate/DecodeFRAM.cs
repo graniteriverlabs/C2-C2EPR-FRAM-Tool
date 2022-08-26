@@ -141,7 +141,7 @@ namespace UpdateFRAMBlocks
         private List<FRAMBlocks> FramBlockDataLst = null;
         private List<FRAM_Data> FramdataLst = null;
         private GrlEthernetLink_C2 m_grlEthernetLink_C2 = null;
-        public string strWriteData;
+        public string strWriteData;        
         public string strReadData;
         public DecodeFRAM()
         {
