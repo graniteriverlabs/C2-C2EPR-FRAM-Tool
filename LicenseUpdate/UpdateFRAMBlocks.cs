@@ -172,7 +172,7 @@ namespace UpdateFRAMBlocks
                     }
                 }
 
-                if (true)
+                if (false)
                 {
                     //read the data ::
                     string readStr1;
