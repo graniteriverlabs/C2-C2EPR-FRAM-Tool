@@ -151,7 +151,6 @@ namespace UpdateFRAMBlocks
             strWriteData = "";
             strReadData = "";
         }
-
         private uint getOffset(int frmablock)
         {
             uint noofbytes = 0;
@@ -388,7 +387,6 @@ namespace UpdateFRAMBlocks
             }
             return tBytes;
         }
-
         public async Task<string> ConvertBytesToString(List<byte> bufData, int printLength = -1)
         {
             string strFinalData = string.Empty;
@@ -460,7 +458,6 @@ namespace UpdateFRAMBlocks
             }
             return strFinalData;
         }
-
         private async Task<string> ByteToStringInHexFormat(List<byte> data)
         {
             string strData = string.Empty;
@@ -477,7 +474,6 @@ namespace UpdateFRAMBlocks
             }
             return strData;
         }
-
         private bool BaseBoardWriteAPI(List<byte> data, uint startAddress, uint length, bool isC2EPR)
         {
             byte offsetLSB = (byte)(startAddress & 0xFF);
@@ -538,7 +534,6 @@ namespace UpdateFRAMBlocks
             }
             return retValue;
         }
-
         private bool C2_FRAM_Baseboard_Read(uint startaddress, uint length, bool isC2EPR)
 
         {
@@ -592,13 +587,11 @@ namespace UpdateFRAMBlocks
             }
             return retValue;
         }
-
         private bool FRAM_Baseboard_Read(ref byte[] data, string apiName)
         {
             data = new byte[] { 0xFC, 0x00, 0XE8 };
             return m_grlEthernetLink_C2.Read(ref data, apiName);
         }
-
         public bool Baseboard_FRAM_Read(ref byte[] data, uint startAddress, uint length, bool isC2EPR)
         {
             bool retValue = C2_FRAM_Baseboard_Read(startAddress, length, isC2EPR);
@@ -616,7 +609,6 @@ namespace UpdateFRAMBlocks
 
         public List<byte> RawData = new List<byte>();
         int endofFRAMIndication = 0;
-
         public bool Read(uint startOffset, uint length, bool isC2EPR)
         {
             byte[] dataBuffer = new byte[1024];
@@ -642,7 +634,6 @@ namespace UpdateFRAMBlocks
             }
             return retVal;
         }
-
         public int Get2ByteInt(int address)
         {
             int retVal = 0;
@@ -657,7 +648,6 @@ namespace UpdateFRAMBlocks
 
             return retVal;
         }
-
         public List<byte> Read(bool isC2EPR)
         {
             try
@@ -751,7 +741,6 @@ namespace UpdateFRAMBlocks
             }
             return RawData;
         }
-
         private bool WriteValuesToFRAM_New(List<byte> data, bool isC2EPR)
         {
             bool retVal = true;
@@ -901,7 +890,6 @@ namespace UpdateFRAMBlocks
             FramdataLst.Clear();
             return retVal;
         }
-
     }
     public class FRAM_Data
     {

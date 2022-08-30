@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -33,6 +34,7 @@ namespace UpdateFRAMBlocks
             m_initlink = new GrlEthernetLink_C2();
             m_initlink.InitilizePort();
             GetControllerType();
+            SetStreamerBufferSize(STREAMER_BUFFER_SIZE.DMA_Mem_Size62k);
             strboardno = GetControllerSerialNo();
             strversionno.Text = strboardno;
             if (isC2EPR)
@@ -40,6 +42,84 @@ namespace UpdateFRAMBlocks
             else
                 label2.Text = "SN of GRL-USB-PD-C2 :";
         }
+
+        public enum STREAMER_BUFFER_SIZE
+        {
+            DMA_Mem_Size1k = 1,
+            DMA_Mem_Size8k = 8,
+            DMA_Mem_Size16k = 16,
+            DMA_Mem_Size32k = 32,
+            DMA_Mem_Size62k = 62,
+        }
+
+        /// <summary>
+        /// Method to set the streamer buffer size 
+        /// </summary>
+        /// <param name="bufferSize"></param>
+        /// <returns></returns>
+        public bool SetStreamerBufferSize(STREAMER_BUFFER_SIZE bufferSize)
+        {
+            bool retValue = false;
+            try
+            {
+                byte[] dataBuffer = new byte[] { 0 };
+                byte regCode = 0xD5, addr = 0;
+
+                //var ethBufferSize = FWAppObj.FWHost.PropertyBag.GetPropertyValue(PropertyItem.ETHERNET_BUFFER_SIZE);
+
+                if ((int)bufferSize == 62)
+                {
+                    dataBuffer = new byte[] { 0xFE, 0x01, 0x00, 0x05, 0x05 };
+                    m_initlink.m_databuffersize = 62 * 1024;
+
+                }
+                else if ((int)bufferSize == 32)
+                {
+                    dataBuffer = new byte[] { 0xFE, 0x01, 0x00, 0x05, 0x04 };
+                    m_initlink.m_databuffersize = 32 * 1024;
+
+                }
+                else if ((int)bufferSize == 16)
+                {
+                    dataBuffer = new byte[] { 0xFE, 0x01, 0x00, 0x05, 0x03 };
+                    m_initlink.m_databuffersize = 16 * 1024;
+
+                }
+                else if ((int)bufferSize == 8)
+                {
+                    dataBuffer = new byte[] { 0xFE, 0x01, 0x00, 0x05, 0x01 };
+                    m_initlink.m_databuffersize = 8 * 1024;
+
+                }
+                else if ((int)bufferSize == 1)
+                {
+                    dataBuffer = new byte[] { 0xFE, 0x01, 0x00, 0x05, 0x00 };
+                    m_initlink.m_databuffersize = 1024;
+                }
+                else
+                {
+                    //FWAppObj.FWHost.WriteToDebugLogger(DebugModeType.DEBUG, $"Invalid buffer size configured in the property file = {ethBufferSize}");
+                }
+
+
+                retValue = m_initlink.Write(dataBuffer);//Write(regCode, addr, dataBuffer, dataBuffer.Length, "Setting Controller Configuaton :" + ethBufferSize.ToString() + "K");
+                for (int i = 0; i < 10; i++)
+                {
+                    Thread.Sleep(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                retValue = false;
+                //m_DebugLog.WriteToDebugLogger(DebugType.STATUS, "GrlUsbPdControllerLib : PD_Controller -> SetControllerConfiguration()" + ex);
+            }
+            return retValue;
+        }
+
+        /// <summary>
+        /// Method to get the controller serial number 
+        /// </summary>
+        /// <returns></returns>
         public string GetControllerSerialNo()
         {
             string str = "";
@@ -72,6 +152,9 @@ namespace UpdateFRAMBlocks
             return str;
         }
 
+        /// <summary>
+        /// Method to get the Controller Type - C2/C2EPR
+        /// </summary>
         public void GetControllerType()
         {
             try
@@ -99,40 +182,10 @@ namespace UpdateFRAMBlocks
 
             }
         }
-        private void btnLic_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //Yog 
-                //Check the controller number is expected ::
-                //If the controller number defined in exe and the connected one is mismatch - throw a message box
-                if (strboardno != ControllerNumber)
-                {
-                    MessageBox.Show("Serial number mismatch");
-                    return;
-                }
 
-                bool retval = mDecodeFRAM.DecodeFramXL(FRAMData.m_Framdata, isC2EPR);
-                if (retval)
-                {
-                    MessageBox.Show("Updated Successfully");
-                    MessageBox.Show("Press the Power Cycle button in controller \n Click Ok once the controller is restarted");
-                    //MessageBox.Show("Power cycle the controller");
-
-                    Reconnection();
-                }
-                else
-                    MessageBox.Show("UnSuccessfully");
-
-                //write the data into the file 
-                FileReadWrite();
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
-
+        /// <summary>
+        /// Method to establish the connection with controller once the FRAM write is success
+        /// </summary>
         private void Reconnection()
         {
             Thread.Sleep(2000);
@@ -150,6 +203,9 @@ namespace UpdateFRAMBlocks
             }
         }
 
+        /// <summary>
+        /// Method to write the binary file to hold the raw data which used before read and after write 
+        /// </summary>
         private void FileReadWrite()
         {
             try
@@ -191,7 +247,6 @@ namespace UpdateFRAMBlocks
             {
             }
         }
-
         public bool Reset_Controller()
         {
             bool retValue = false;
@@ -204,6 +259,39 @@ namespace UpdateFRAMBlocks
             {
             }
             return retValue;
+        }
+        private void btnLic_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                //Yog 
+                //Check the controller number is expected ::
+                //If the controller number defined in exe and the connected one is mismatch - throw a message box
+                if (strboardno != ControllerNumber)
+                {
+                    MessageBox.Show("Serial number mismatch");
+                    return;
+                }
+
+                bool retval = mDecodeFRAM.DecodeFramXL(FRAMData.m_Framdata, isC2EPR);
+                if (retval)
+                {
+                    MessageBox.Show("Updated Successfully");
+                    MessageBox.Show("Press the Power Cycle button in controller \n Click Ok once the controller is restarted");
+                    //MessageBox.Show("Power cycle the controller");
+
+                    Reconnection();
+                }
+                else
+                    MessageBox.Show("UnSuccessfully");
+
+                //write the data into the file 
+                FileReadWrite();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
         public void writeLicense(uint address, uint uiLicense, int Noofbytes, int param = 0, string strval = "")
         {
@@ -256,12 +344,10 @@ namespace UpdateFRAMBlocks
             {
             }
         }
-
         private void strversionno_Click(object sender, EventArgs e)
         {
 
         }
-
         private void label2_Click(object sender, EventArgs e)
         {
 
